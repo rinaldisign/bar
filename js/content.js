@@ -92,9 +92,7 @@ export const views = [
     image: "assets/pano1.jpg",
     yawOffset: 0,
     pitchPoints: [
-       { pitch: 3.17, yaw: 97.59, target: "view2" },
-       { pitch: -10.29, yaw: -42.11, target: "view9" },
-       { pitch: -16.84, yaw: -94.42, target: "view8" },
+       { pitch: 1.96, yaw: 159.83, target: "view2" },
     ],
   },
   {
@@ -103,8 +101,7 @@ export const views = [
     image: "assets/pano2.jpg",
     yawOffset: 0,
     pitchPoints: [
-        { pitch: -2.72, yaw: 87.5, target: "view1" },
-        { pitch: -20.28, yaw: -37.74, target: "view3" },
+        { pitch: -1.32, yaw: -59.76, target: "view1" },
     ],
   },
 ];
