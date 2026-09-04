@@ -54,8 +54,8 @@ export const floors = [
     name: "1階",
     image: "assets/floorplan.jpg",
     points: [
-  { target: "view1", x: 72.2, y: 83 },
-  { target: "view2", x: 47.4, y: 33 },
+  { target: "view1", x: 24.7, y: 52.3 },
+  { target: "view2", x: 69.1, y: 55 },
 ],
   },
 ];
