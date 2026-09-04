@@ -28,7 +28,7 @@
  * ============================================================
  */
 
-export const projectName = "Kajanchi";
+export const projectName = "Coboy Bar";
 
 /* ============================================================
    1) DENAH (FLOORPLAN)
