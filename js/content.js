@@ -241,6 +241,9 @@ export const contents = [
     type: "photo",
     image: "assets/menu1.jpg",
     text: "Coboy Bar Menu.",
+   pitchPoints: [
+  { type: "content", pitch: 4.72, yaw: 106.99, target: "content-foto-menu" },
+],
   },
 ];
 
