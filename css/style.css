@@ -13,6 +13,12 @@
   --accent-dim: rgba(127, 164, 214, 0.12);
   --accent-glow: rgba(127, 164, 214, 0.55);
 
+  /* Warna khusus hotspot CONTENT (foto/link/video/embed), sengaja
+     dibedakan dari --accent supaya beda dari hotspot navigasi. */
+  --content-accent: #e3b06c;
+  --content-accent-strong: #f3d29c;
+  --content-glow: rgba(227, 176, 108, 0.55);
+
   /* Alias kompatibilitas mundur — dipakai oleh css/pitch-finder.css
      & css/denah-finder.css (halaman bantu internal), supaya keduanya
      tetap konsisten tanpa perlu diedit ulang. */
@@ -184,6 +190,14 @@ html, body {
   pointer-events: none;
   background: linear-gradient(to bottom, rgba(4, 7, 12, 0.65), transparent);
   width: 100%;
+}
+.hud-logo {
+  display: block;
+  width: clamp(64px, 9vw, 108px);
+  height: auto;
+  margin: 0 0 10px 0;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,0.55));
+  opacity: 0.96;
 }
 .eyebrow {
   margin: 0 0 5px;
@@ -508,6 +522,7 @@ html, body {
 
 @media (max-width: 560px) {
   .hud-top { padding: 18px 16px; }
+  .hud-logo { width: clamp(48px, 16vw, 72px); margin-bottom: 6px; }
   /* Fitur fullscreen dihilangkan di tampilan smartphone (share tetap tampil) */
   #fullscreen-btn { display: none !important; }
   .top-controls { top: 16px; right: 16px; }
@@ -520,6 +535,18 @@ html, body {
     100% { width: 120px; opacity: 0.55; }
   }
   .toast { font-size: 12px; padding: 10px 16px; bottom: 22px; max-width: calc(100vw - 32px); white-space: normal; text-align: center; }
+
+  /* Hotspot navigasi ke panorama lain — dikecilkan ~40% khusus mobile */
+  .nav-hotspot-ring { width: 28px; height: 28px; }
+  .nav-hotspot-ring::after { inset: -5px; }
+  .nav-hotspot-arrow { width: 12px; height: 12px; }
+  .nav-hotspot-label { font-size: 10px; }
+
+  /* Hotspot content ikut dikecilkan juga, tetap lebih kecil dari nav-hotspot */
+  .content-hotspot-ring { width: 22px; height: 22px; }
+  .content-hotspot-ring::after { inset: -4px; }
+  .content-hotspot-icon { width: 10px; height: 10px; }
+  .content-hotspot-label { font-size: 9.5px; }
 }
 
 /* Hide default pannellum branding/controls we don't want */
@@ -585,4 +612,243 @@ html, body {
 
 @media (prefers-reduced-motion: reduce) {
   .nav-hotspot-ring::after { animation: none; }
+}
+
+/* ---------- Hotspot CONTENT (foto/link/video/embed) ----------
+   Sengaja dibuat lebih kecil & berkedip lebih cepat daripada
+   .nav-hotspot supaya pengunjung langsung bisa membedakan mana
+   titik yang berpindah ruangan dan mana yang membuka info. */
+
+.content-hotspot.pnlm-hotspot-base {
+  width: auto;
+  height: auto;
+}
+.content-hotspot-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+.content-hotspot-inner:focus-visible {
+  outline: 2px solid var(--content-accent);
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+.content-hotspot-ring {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(227, 176, 108, 0.14);
+  border: 1.5px solid var(--content-accent);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+.content-hotspot-ring::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid var(--content-accent);
+  opacity: 0.6;
+  animation: pulse 1.6s ease-out infinite;
+}
+.content-hotspot-icon {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  color: var(--content-accent);
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
+}
+.content-hotspot-inner:hover .content-hotspot-ring {
+  transform: scale(1.1);
+  background: rgba(227, 176, 108, 0.24);
+  border-color: var(--content-accent-strong);
+}
+.content-hotspot-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--paper);
+  background: transparent;
+  padding: 0;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.85), 0 0 12px rgba(0,0,0,0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-hotspot-ring::after { animation: none; }
+}
+
+/* ============================================================
+   Content modal — jendela pop-up untuk hotspot content
+   (foto / ikon+link / teks+link / link / video YouTube / embed)
+============================================================ */
+
+.content-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 7, 12, 0.72);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.content-modal-overlay[hidden] { display: none; }
+.content-modal-overlay.visible { opacity: 1; }
+
+.content-modal {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: var(--panel-strong);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px var(--accent-dim);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  transform: translateY(10px) scale(0.98);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+.content-modal-overlay.visible .content-modal {
+  transform: translateY(0) scale(1);
+}
+.content-modal.content-modal--expanded {
+  width: min(1100px, 96vw);
+  max-height: 94vh;
+}
+
+.content-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--panel-border);
+}
+.content-modal-title {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-weight: 500;
+  font-size: 19px;
+  color: var(--paper);
+}
+.content-modal-actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.content-modal-btn {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  border: 1px solid var(--panel-border);
+  background: rgba(127, 164, 214, 0.06);
+  color: var(--paper);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.content-modal-btn svg { width: 16px; height: 16px; }
+.content-modal-btn:hover { background: var(--accent-dim); border-color: var(--accent-soft); }
+
+.content-modal-body {
+  padding: 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.content-modal-photo img,
+.content-modal-icon-img {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+.content-modal-icon-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: rgba(255,255,255,0.06);
+  padding: 8px;
+}
+
+.content-modal-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.content-modal-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.content-modal-link-btn:hover { opacity: 0.88; }
+.content-modal-link-btn:active { transform: scale(0.97); }
+.content-modal-link-btn--solo { align-self: center; }
+
+.content-modal-icon-link,
+.content-modal-text-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.content-modal-video,
+.content-modal-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+.content-modal-video iframe,
+.content-modal-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.content-modal--expanded .content-modal-video,
+.content-modal--expanded .content-modal-embed {
+  aspect-ratio: auto;
+  height: min(76vh, 640px);
+}
+
+@media (max-width: 560px) {
+  .content-modal-overlay { padding: 0; align-items: flex-end; }
+  .content-modal { width: 100%; max-height: 88vh; border-radius: 18px 18px 0 0; }
+  .content-modal.content-modal--expanded { max-height: 96vh; }
+  .content-modal-title { font-size: 16px; }
 }

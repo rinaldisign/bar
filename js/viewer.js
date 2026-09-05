@@ -8,8 +8,9 @@
  * perlu diedit sama sekali.
  * ============================================================
  */
-import { views, findView, projectName } from "./content.js";
-import { createNavHotspotEl } from "./hotspots.js";
+import { views, findView, findContent, projectName } from "./content.js";
+import { createNavHotspotEl, createContentHotspotEl } from "./hotspots.js";
+import { openContentModal } from "./content-modal.js";
 import { setCurrentView, getCurrentViewId, tourEvents } from "./state.js";
 
 /* ---------- Judul halaman (tab browser) & judul besar HUD ----------
@@ -37,15 +38,34 @@ export const viewer = pannellum.viewer("panorama", {
         panorama: v.image,
         autoLoad: true,
         yaw: v.yawOffset || 0,
-        hotSpots: (v.pitchPoints || []).map((p) => ({
-          pitch: p.pitch,
-          yaw: p.yaw,
-          type: "scene",
-          sceneId: p.target,
-          cssClass: "nav-hotspot",
-          createTooltipFunc: createNavHotspotEl,
-          createTooltipArgs: p.label || (findView(p.target) || {}).title || "",
-        })),
+        hotSpots: (v.pitchPoints || []).map((p) => {
+          const showLabel = p.showLabel !== false;
+
+          if (p.type === "content") {
+            const c = findContent(p.target);
+            const label = p.label || (c || {}).title || "";
+            return {
+              pitch: p.pitch,
+              yaw: p.yaw,
+              type: "content-point",
+              cssClass: "content-hotspot",
+              createTooltipFunc: createContentHotspotEl,
+              createTooltipArgs: { label, showLabel },
+              clickHandlerFunc: () => openContentModal(p.target),
+            };
+          }
+
+          const label = p.label || (findView(p.target) || {}).title || "";
+          return {
+            pitch: p.pitch,
+            yaw: p.yaw,
+            type: "scene",
+            sceneId: p.target,
+            cssClass: "nav-hotspot",
+            createTooltipFunc: createNavHotspotEl,
+            createTooltipArgs: { label, showLabel },
+          };
+        }),
       },
     ])
   ),

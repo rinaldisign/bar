@@ -11,8 +11,11 @@
  *   - menambah / menghapus gambar 360 (view)
  *   - menambah / menghapus titik pada denah
  *   - menambah / menghapus pitch point di dalam gambar 360
+ *   - menambah / menghapus CONTENT (foto, link, video, embed) yang
+ *     muncul lewat jendela pop-up saat sebuah hotspot diklik
  * Cukup tambah atau hapus objeknya di array yang bersangkutan,
- * tampilan (denah, panah navigasi) otomatis menyesuaikan.
+ * tampilan (denah, panah navigasi, hotspot content) otomatis
+ * menyesuaikan.
  *
  * CARA MENCARI NILAI PITCH & YAW:
  *   Buka pitch-finder.html, pilih gambar 360 yang mau dicari
@@ -72,13 +75,44 @@ export const floors = [
    - image      : path file gambar panorama.
    - yawOffset  : opsional, arah hadap awal saat view ini dibuka
                   (derajat, 0-360).
-   - pitchPoints: panah navigasi yang menempel DI DALAM gambar
-                  360 ini, menuju view lain.
-       pitch  : sudut atas/bawah (ambil dari pitch-finder.html)
-       yaw    : sudut kiri/kanan (ambil dari pitch-finder.html)
-       target : id view tujuan saat panah diklik
-       label  : opsional, teks yang tampil di panah. Kalau
-                dikosongkan, otomatis pakai title dari view target.
+   - pitchPoints: titik-titik yang menempel DI DALAM gambar 360
+                  ini. Ada 2 macam target:
+
+       A) Menuju VIEW 360 lain (tampilan lama, tetap sama persis):
+            { pitch: 1.9, yaw: 159.8, target: "view2" }
+          "target" harus sama dengan salah satu "id" di array
+          `views` ini. Kalau "type" tidak ditulis sama sekali,
+          otomatis dianggap tipe ini (jadi data lama tetap jalan
+          tanpa perlu diubah apa-apa).
+
+       B) Menuju CONTENT — fitur tambahan: foto, ikon+link,
+          teks+link, link saja, video YouTube, atau embed lain.
+          Saat diklik, muncul jendela pop-up (bisa ditutup &
+          diperbesar), TIDAK berpindah gambar 360:
+            { pitch: 1.9, yaw: 159.8, type: "content", target: "content-promo" }
+          "target" harus sama dengan salah satu "id" di array
+          `contents` (lihat bagian 3 di bawah). Wajib tulis
+          `type: "content"` supaya dikenali sebagai tipe ini.
+
+       Field yang berlaku untuk keduanya:
+         pitch, yaw : sudut, ambil dari pitch-finder.html (di
+                      pitch-finder.html pilih tab "🖼️ Panorama"
+                      untuk tipe A, atau "🧩 Content" untuk tipe B,
+                      supaya tidak ketuker saat memilih target).
+         label      : opsional, teks yang tampil di titik. Kalau
+                      dikosongkan, otomatis pakai title dari view
+                      target (tipe A) atau title dari content
+                      target (tipe B).
+         showLabel  : opsional, isi `false` supaya titik tampil
+                      TANPA teks sama sekali (hanya ikon saja) —
+                      berlaku baik tipe A maupun B. Default: true
+                      (teks ditampilkan).
+
+   Tampilan ikon tipe A (menuju panorama lain) dan tipe B (menuju
+   content) sengaja dibedakan otomatis oleh sistem: ikon tipe B
+   lebih kecil dan berkedip sedikit lebih cepat, supaya pengunjung
+   bisa langsung membedakan mana titik yang pindah ruangan dan mana
+   yang membuka info tambahan.
 
    Tambah gambar 360 baru = tambah 1 objek baru di array `views`,
    lalu taruh file panoramanya di folder assets/.
@@ -107,6 +141,103 @@ export const views = [
 ];
 
 /* ============================================================
+   3) CONTENT (foto / ikon+link / teks+link / link / video / embed)
+   ------------------------------------------------------------
+   Fitur tambahan: dipakai oleh pitchPoints tipe B (lihat
+   penjelasan di atas array `views`). Ini titik yang KALAU DIKLIK
+   membuka jendela pop-up berisi info tambahan — bukan berpindah
+   ke gambar 360 lain. Boleh dibiarkan kosong ([]) kalau fitur ini
+   belum dipakai; semua pitchPoints yang menuju view 360 tetap
+   jalan normal seperti biasa.
+
+   Cara pakai:
+     1) Tambah 1 objek baru di array `contents` di bawah ini.
+     2) Tunjuk objek itu dari `pitchPoints` milik view yang mana
+        saja, pakai `type: "content"` dan `target: "<id di sini>"`.
+     3) Di pitch-finder.html, klik dulu titiknya seperti biasa,
+        lalu pilih tab target "🧩 Content" (bukan "🖼️ Panorama")
+        supaya milih content-nya gampang, tidak ketuker dengan
+        daftar gambar 360.
+
+   Setiap objek WAJIB punya:
+     id    : pengenal unik (dipakai sebagai "target" di pitchPoints).
+     title : judul, tampil sebagai judul jendela pop-up & otomatis
+             jadi label titik kalau "label" tidak diisi manual.
+     type  : salah satu dari 6 pilihan berikut —
+               "photo"     -> tampilkan 1 foto (+ teks opsional).
+               "icon-link" -> ikon/gambar kecil + tombol link.
+               "text-link" -> teks + tombol link.
+               "link"      -> cuma 1 tombol/link saja, tanpa apa-apa.
+               "youtube"   -> video YouTube (isi link videonya saja,
+                              format apapun: youtube.com/watch?v=...
+                              atau youtu.be/...).
+               "embed"     -> embed bebas (kode <iframe> atau HTML
+                              lain, mis. Google Maps, TikTok, dsb).
+
+   Field lain tergantung "type" yang dipilih (isi seperlunya saja,
+   sisanya boleh dihapus dari objeknya):
+     image      : path foto/ikon (dipakai oleh "photo" & "icon-link").
+     text       : teks/deskripsi (dipakai oleh "photo" & "text-link").
+     link       : url tujuan tombol (dipakai oleh "icon-link",
+                  "text-link", "link").
+     linkLabel  : opsional, teks tombolnya. Kalau kosong otomatis
+                  jadi "Buka link".
+     youtubeUrl : url video (dipakai oleh "youtube").
+     embedHtml  : kode embed mentah, mis. '<iframe src="..."></iframe>'
+                  (dipakai oleh "embed").
+============================================================ */
+export const contents = [
+  // Contoh 6 tipe content — hapus tanda komentar ( /* ... */ ) di
+  // bawah dan sesuaikan isinya kalau mau langsung dipakai, lalu
+  // hubungkan dari pitchPoints lewat { type: "content", target: "..." }.
+
+  /*
+  {
+    id: "content-foto-menu",
+    title: "Menu Minuman",
+    type: "photo",
+    image: "assets/menu.jpg",
+    text: "Daftar menu minuman signature Coboy Bar.",
+  },
+  {
+    id: "content-instagram",
+    title: "Instagram Kami",
+    type: "icon-link",
+    image: "assets/ig-icon.png",
+    link: "https://instagram.com/coboybar",
+    linkLabel: "Buka Instagram",
+  },
+  {
+    id: "content-promo",
+    title: "Promo Bulan Ini",
+    type: "text-link",
+    text: "Diskon 20% untuk semua cocktail setiap hari Jumat.",
+    link: "https://coboybar.example.com/promo",
+    linkLabel: "Lihat detail promo",
+  },
+  {
+    id: "content-reservasi",
+    title: "Reservasi Meja",
+    type: "link",
+    link: "https://coboybar.example.com/reservasi",
+    linkLabel: "Reservasi sekarang",
+  },
+  {
+    id: "content-video-profil",
+    title: "Video Profil Coboy Bar",
+    type: "youtube",
+    youtubeUrl: "https://www.youtube.com/watch?v=xxxxxxxxxxx",
+  },
+  {
+    id: "content-peta",
+    title: "Lokasi Kami",
+    type: "embed",
+    embedHtml: '<iframe src="https://www.google.com/maps/embed?..." style="width:100%;height:100%;border:0;" loading="lazy"></iframe>',
+  },
+  */
+];
+
+/* ============================================================
    Helper — TIDAK PERLU DIEDIT
    Dipakai oleh js/viewer.js dan js/floorplan.js untuk membaca
    data di atas. Diletakkan di sini supaya file ini tetap jadi
@@ -118,6 +249,11 @@ export function findView(id) {
 
 export function findFloor(id) {
   return floors.find((f) => f.id === id);
+}
+
+/** Cari 1 objek content lewat id-nya (dipakai saat hotspot content diklik). */
+export function findContent(id) {
+  return contents.find((c) => c.id === id);
 }
 
 /** Semua lantai yang punya titik menuju view ini (dipakai saat pindah view untuk tahu harus pindah tab lantai ke mana). */

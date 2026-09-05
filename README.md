@@ -19,7 +19,8 @@ di `index.html` tanpa perlu subfolder.
 /js
   content.js         <-- SATU-SATUNYA FILE YANG PERLU DIEDIT
   state.js           logika internal (jangan diedit)
-  hotspots.js         logika internal (jangan diedit)
+  hotspots.js        logika internal (jangan diedit)
+  content-modal.js   logika internal (jangan diedit) — jendela pop-up hotspot content
   viewer.js          logika internal (jangan diedit)
   vr.js              logika halaman VR, pakai data dari content.js juga
   floorplan.js       logika internal (jangan diedit)
@@ -53,12 +54,51 @@ file lain untuk mengubah tur:
 - **Menghapus** salah satu di atas → cukup hapus objeknya dari array;
   tampilan (denah & panah navigasi) otomatis ikut hilang.
 
+## Hotspot CONTENT (foto / link / video / embed)
+
+Selain panah yang berpindah ke gambar 360 lain, sebuah titik di
+dalam panorama sekarang juga bisa membuka **jendela pop-up**
+berisi foto, ikon+link, teks+link, link saja, video YouTube, atau
+embed lain (mis. Google Maps) — jendela ini bisa ditutup dan
+diperbesar.
+
+1. Tambah 1 objek baru di array **`contents`** pada `js/content.js`
+   (lihat contoh 6 tipe yang sudah disediakan di sana, tinggal
+   hapus tanda komentar).
+2. Hubungkan dari `pitchPoints` view manapun dengan menambahkan
+   `type: "content"`, contoh:
+   ```js
+   { type: "content", pitch: 1.9, yaw: 159.8, target: "content-promo" }
+   ```
+3. Cari koordinat pitch/yaw-nya lewat `pitch-finder.html` seperti
+   biasa — di sana ada bar tab **"🖼️ Panorama"** / **"🧩 Content"**
+   untuk memilih mau menuju gambar 360 lain atau menuju content,
+   supaya tidak ketuker.
+
+Tampilan ikon hotspot content sengaja dibuat lebih kecil dan
+berkedip sedikit lebih cepat daripada ikon panah navigasi, supaya
+pengunjung bisa langsung membedakan keduanya.
+
+Setiap titik (baik menuju panorama lain maupun menuju content) juga
+bisa diberi `showLabel: false` supaya tampil tanpa teks sama sekali
+(hanya ikon).
+
+## Logo di tampilan tur
+
+Logo kecil di pojok kiri atas (di atas nama ruangan) memakai file
+yang sama dengan logo di layar loading: `brand/earnest-logo-light.png`
+(diatur di `index.html`, elemen `<img class="hud-logo">`). Ukurannya
+otomatis menyesuaikan lebar layar, termasuk diperkecil lagi khusus di
+tampilan mobile.
+
 ## Cara mencari nilai pitch & yaw
 
 1. Buka `pitch-finder.html` di browser (lewat server lokal, lihat di
    bawah — bukan dibuka langsung dari file explorer).
 2. Pilih gambar 360 yang mau dicari titiknya di dropdown **"Gambar 360"**.
-3. Pilih tujuan panah (**"Target"**) yang diinginkan.
+3. Pilih **Tipe Target**: **"🖼️ Panorama"** (menuju gambar 360 lain)
+   atau **"🧩 Content"** (menuju jendela foto/link/video/embed),
+   lalu pilih tujuan spesifiknya di dropdown yang muncul.
 4. Klik posisi yang diinginkan di dalam gambar → nilai pitch & yaw
    muncul, klik **"+ Tambah ke daftar"**.
 5. Ulangi untuk titik lain, lalu klik **"Copy sebagai kode pitchPoints"**

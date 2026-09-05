@@ -46,8 +46,32 @@
     </div>
 
     <div class="finder-field">
-      <label for="target-select">Target (untuk titik yang akan ditambahkan)</label>
+      <label>Tipe Target</label>
+      <div class="mode-toggle" role="group" aria-label="Tipe target titik">
+        <button type="button" id="target-type-scene-btn" class="mode-btn" aria-pressed="false">🖼️ Panorama</button>
+        <button type="button" id="target-type-content-btn" class="mode-btn" aria-pressed="false">🧩 Content</button>
+      </div>
+      <p class="finder-hint" style="margin-top:6px;">
+        Pilih <b>Panorama</b> kalau titik ini untuk pindah ke gambar 360
+        lain, atau <b>Content</b> kalau titik ini untuk membuka jendela
+        foto/link/video/embed (diatur di array <code>contents</code>
+        pada <code>js/content.js</code>).
+      </p>
+    </div>
+
+    <div class="finder-field" id="target-scene-field">
+      <label for="target-select">Target Panorama (untuk titik yang akan ditambahkan)</label>
       <select id="target-select" class="finder-select"></select>
+    </div>
+
+    <div class="finder-field" id="target-content-field" hidden>
+      <label for="target-content-select">Target Content (untuk titik yang akan ditambahkan)</label>
+      <select id="target-content-select" class="finder-select"></select>
+      <p class="finder-hint" id="target-content-empty" hidden style="margin-top:6px;">
+        Belum ada content di <code>js/content.js</code> (array
+        <code>contents</code>). Tambahkan dulu di sana sebelum bisa
+        dipilih sebagai target di sini.
+      </p>
     </div>
 
     <div id="coord-display">
