@@ -235,6 +235,13 @@ export const contents = [
     embedHtml: '<iframe src="https://www.google.com/maps/embed?..." style="width:100%;height:100%;border:0;" loading="lazy"></iframe>',
   },
   */
+   {
+    id: "content-foto-menu",
+    title: "Menu",
+    type: "photo",
+    image: "assets/menu1.jpg",
+    text: "Coboy Bar Menu.",
+  },
 ];
 
 /* ============================================================
